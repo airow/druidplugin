@@ -294,6 +294,39 @@ function (angular, _, dateMath, moment) {
         return finalFilter;
       });
       if (replacedFilters) {
+
+        var temp = [];
+        replacedFilters.forEach(item => {
+          var valueKey = '';
+          switch (item.type) {
+            case "regex":
+              valueKey = "pattern";
+              break;
+            case "selector":
+              valueKey = "value";
+              break;
+            case "javascript":
+              valueKey = "function";
+              break;
+          }
+
+          //templateSrv
+
+          // var m = item[valueKey].match(/.*:"(\$.*)"\s?(and|or)?/);
+          var result = templateSrv._regex.test(item[valueKey]);
+          if (false === result) {
+            temp.push(item);
+          }
+
+          //if(item[valueKey])
+        });
+
+        replacedFilters = temp;
+
+        if (replacedFilters.length === 0) {
+          return null;
+        }
+
         if (replacedFilters.length === 1) {
           return replacedFilters[0];
         }

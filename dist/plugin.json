@@ -1,15 +1,15 @@
 {
   "type": "datasource",
-  "name": "Druid",
-  "id": "abhisant-druid-datasource",
+  "name": "Teld Druid",
+  "id": "teld-druid-datasource",
 
   "metrics": true,
 
   "info": {
     "version": "0.0.4",
     "author": {
-      "name": "Abhishek Sant",
-      "url": "https://github.com/grafana-druid-plugin/druidplugin"
+      "name": "Teld Inc.",
+      "url": "https://teld.cn"
     },
    "links":[
      {"name": "GitHub", "url": "https://github.com/grafana-druid-plugin/druidplugin"}
