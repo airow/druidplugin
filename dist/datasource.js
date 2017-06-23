@@ -313,8 +313,20 @@ function (angular, _, dateMath, moment) {
           //templateSrv
 
           // var m = item[valueKey].match(/.*:"(\$.*)"\s?(and|or)?/);
-          var result = templateSrv._regex.test(item[valueKey]);
-          if (false === result) {
+          // var result = templateSrv._regex.test(item[valueKey]);
+          // if (false === result) {
+          //   temp.push(item);
+          // }
+
+          //var result = item[valueKey].match(templateSrv._regex);
+          var variableName = templateSrv.getVariableName(item[valueKey]);
+          if (variableName) {
+            var variable = templateSrv.getVariable(`$${variableName}`, "custom");
+
+            if (null === variable) {
+              temp.push(item);
+            }
+          } else {
             temp.push(item);
           }
 
