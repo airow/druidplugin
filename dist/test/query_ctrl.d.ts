@@ -35,6 +35,8 @@ export declare class DruidQueryCtrl extends QueryCtrl {
     aggregatorValidators: {
         "count": (target: any) => string;
         "longSum": any;
+        "longMax": any;
+        "longMin": any;
         "doubleSum": any;
         "approxHistogramFold": any;
         "hyperUnique": any;

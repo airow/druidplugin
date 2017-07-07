@@ -40,9 +40,11 @@ export class DruidQueryCtrl extends QueryCtrl {
   aggregatorValidators = {
     "count": this.validateCountAggregator,
     "longSum": _.partial(this.validateSimpleAggregator.bind(this), 'longSum'),
+    "longMax": _.partial(this.validateSimpleAggregator.bind(this), 'longMax'),
+    "longMin": _.partial(this.validateSimpleAggregator.bind(this), 'longMin'),
     "doubleSum": _.partial(this.validateSimpleAggregator.bind(this), 'doubleSum'),
     "approxHistogramFold": this.validateApproxHistogramFoldAggregator.bind(this),
-    "hyperUnique": _.partial(this.validateSimpleAggregator.bind(this), 'hyperUnique')
+    "hyperUnique": _.partial(this.validateSimpleAggregator.bind(this), 'hyperUnique'),
   };
   postAggregatorValidators = {
     //"arithmetic": this.validateArithmeticPostAggregator.bind(this),

@@ -36,6 +36,8 @@ System.register(['lodash', './sdk/sdk'], function(exports_1) {
                     this.aggregatorValidators = {
                         "count": this.validateCountAggregator,
                         "longSum": lodash_1["default"].partial(this.validateSimpleAggregator.bind(this), 'longSum'),
+                        "longMax": lodash_1["default"].partial(this.validateSimpleAggregator.bind(this), 'longMax'),
+                        "longMin": lodash_1["default"].partial(this.validateSimpleAggregator.bind(this), 'longMin'),
                         "doubleSum": lodash_1["default"].partial(this.validateSimpleAggregator.bind(this), 'doubleSum'),
                         "approxHistogramFold": this.validateApproxHistogramFoldAggregator.bind(this),
                         "hyperUnique": lodash_1["default"].partial(this.validateSimpleAggregator.bind(this), 'hyperUnique')
