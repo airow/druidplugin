@@ -390,10 +390,20 @@
   </div>
 
   <!-- arithmetic -->
-  <div class="gf-form" ng-show="ctrl.addPostAggregatorMode" ng-switch on="ctrl.target.currentPostAggregator.type">
+  <!--<div class="gf-form" ng-show="ctrl.addPostAggregatorMode" ng-switch on="ctrl.target.currentPostAggregator.type">
     <input type="text" ng-switch-when="arithmetic" class="input-small gf-form-input" spellcheck="false" ng-model="ctrl.target.currentPostAggregator.name" placeholder="output name" ng-blur="ctrl.targetBlur()">
     <select ng-switch-when="arithmetic" class="input-small gf-form-input" ng-model="ctrl.target.currentPostAggregator.fn" ng-options="fn for fn in ctrl.arithmeticPostAggregator" ng-change="ctrl.targetBlur()"></select>
     <input type="text" ng-switch-when="arithmetic" class="input-small gf-form-input" spellcheck="false" ng-model="ctrl.target.currentPostAggregator.fields" placeholder="field1,field2" ng-blur="ctrl.targetBlur()">
+  </div>-->
+
+  <!-- arithmetic -->
+  <div class="gf-form" ng-show="ctrl.addPostAggregatorMode" ng-switch on="ctrl.target.currentPostAggregator.type">
+    <input type="text" ng-switch-when="arithmetic" class="input-small gf-form-input" spellcheck="false" ng-model="ctrl.target.currentPostAggregator.name" placeholder="output name" ng-blur="ctrl.targetBlur()">
+    <input type="text" ng-switch-when="arithmetic" class="input-small gf-form-input" spellcheck="false" ng-model="ctrl.target.currentPostAggregator.field1" placeholder="field1" ng-blur="ctrl.targetBlur()">
+    <select ng-switch-when="arithmetic" class="input-small gf-form-input" ng-model="ctrl.target.currentPostAggregator.field1Type" ng-options="type for type in ctrl.arithmeticPostAggregatorType" ng-change="ctrl.targetBlur()"></select>
+    <select ng-switch-when="arithmetic" class="input-small gf-form-input" ng-model="ctrl.target.currentPostAggregator.fn" ng-options="fn for fn in ctrl.arithmeticPostAggregator" ng-change="ctrl.targetBlur()"></select>
+    <input type="text" ng-switch-when="arithmetic" class="input-small gf-form-input" spellcheck="false" ng-model="ctrl.target.currentPostAggregator.field2" placeholder="field2" ng-blur="ctrl.targetBlur()">
+    <select ng-switch-when="arithmetic" class="input-small gf-form-input" ng-model="ctrl.target.currentPostAggregator.field2Type" ng-options="type for type in ctrl.arithmeticPostAggregatorType" ng-change="ctrl.targetBlur()"></select>
   </div>
 
   <!-- quantile -->

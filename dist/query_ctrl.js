@@ -41,10 +41,12 @@ System.register(['lodash', './sdk/sdk'], function(exports_1) {
                         "hyperUnique": lodash_1["default"].partial(this.validateSimpleAggregator.bind(this), 'hyperUnique')
                     };
                     this.postAggregatorValidators = {
-                        "arithmetic": this.validateArithmeticPostAggregator.bind(this),
+                        //"arithmetic": this.validateArithmeticPostAggregator.bind(this),
+                        "arithmetic": this.validatearithmeticConfPostAggregator.bind(this),
                         "quantile": this.validateQuantilePostAggregator.bind(this)
                     };
                     this.arithmeticPostAggregatorFns = { '+': null, '-': null, '*': null, '/': null };
+                    this.arithmeticPostAggregatorTypes = { 'hyperUniqueCardinality': null, 'fieldAccess': null };
                     this.defaultQueryType = "timeseries";
                     this.defaultFilterType = "selector";
                     this.defaultAggregatorType = "count";
@@ -62,6 +64,7 @@ System.register(['lodash', './sdk/sdk'], function(exports_1) {
                     this.aggregatorTypes = lodash_1["default"].keys(this.aggregatorValidators);
                     this.postAggregatorTypes = lodash_1["default"].keys(this.postAggregatorValidators);
                     this.arithmeticPostAggregator = lodash_1["default"].keys(this.arithmeticPostAggregatorFns);
+                    this.arithmeticPostAggregatorType = lodash_1["default"].keys(this.arithmeticPostAggregatorTypes);
                     this.customGranularity = this.customGranularities;
                     this.errors = this.validateTarget();
                     if (!this.target.currentFilter) {
@@ -441,6 +444,34 @@ System.register(['lodash', './sdk/sdk'], function(exports_1) {
                         if (target.currentPostAggregator.fields.length < 2) {
                             return "Must provide at least two fields for arithmetic post aggregator.";
                         }
+                    }
+                    return null;
+                };
+                DruidQueryCtrl.prototype.validatearithmeticConfPostAggregator = function (target) {
+                    if (!target.currentPostAggregator.name) {
+                        return "Must provide an output name for arithmetic post aggregator.";
+                    }
+                    if (!target.currentPostAggregator.fn) {
+                        return "Must provide a function for arithmetic post aggregator.";
+                    }
+                    if (!this.isValidArithmeticPostAggregatorFn(target.currentPostAggregator.fn)) {
+                        return "Invalid arithmetic function";
+                    }
+                    target.currentPostAggregator.fields = [];
+                    if (!target.currentPostAggregator.field1 || !target.currentPostAggregator.field1Type) {
+                        return "Must provide a list of fields for arithmetic post aggregator.";
+                    }
+                    else {
+                        target.currentPostAggregator.fields.push({ type: target.currentPostAggregator.field1Type, fieldName: target.currentPostAggregator.field1 });
+                    }
+                    if (!target.currentPostAggregator.field2 || !target.currentPostAggregator.field2Type) {
+                        return "Must provide a list of field2 for arithmetic post aggregator.";
+                    }
+                    else {
+                        target.currentPostAggregator.fields.push({ type: target.currentPostAggregator.field2Type, fieldName: target.currentPostAggregator.field2 });
+                    }
+                    if (target.currentPostAggregator.fields.length < 2) {
+                        return "Must provide at least two field1 for arithmetic post aggregator.";
                     }
                     return null;
                 };

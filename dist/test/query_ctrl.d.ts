@@ -17,6 +17,7 @@ export declare class DruidQueryCtrl extends QueryCtrl {
     aggregatorTypes: any;
     postAggregatorTypes: any;
     arithmeticPostAggregator: any;
+    arithmeticPostAggregatorType: any;
     customGranularity: any;
     target: any;
     datasource: any;
@@ -47,6 +48,10 @@ export declare class DruidQueryCtrl extends QueryCtrl {
         '-': any;
         '*': any;
         '/': any;
+    };
+    arithmeticPostAggregatorTypes: {
+        'hyperUniqueCardinality': any;
+        'fieldAccess': any;
     };
     defaultQueryType: string;
     defaultFilterType: string;
@@ -100,5 +105,6 @@ export declare class DruidQueryCtrl extends QueryCtrl {
     validateSimplePostAggregator(type: any, target: any): string;
     validateQuantilePostAggregator(target: any): string;
     validateArithmeticPostAggregator(target: any): string;
+    validatearithmeticConfPostAggregator(target: any): string;
     validateTarget(): any;
 }
