@@ -1,5 +1,5 @@
 {
-  "name": "abhisant-druid-plugin",
+  "name": "teld-druid-plugin",
   "version": "0.0.2",
   "description": "Grafana plugin for Druid real-time OLAP database",
   "main": "index.js",
@@ -14,7 +14,7 @@
   "keywords": [
     "Druid"
   ],
-  "author": "Abhishek Sant",
+  "author": "Teld zhangch",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/grafana-druid-plugin/druidplugin/issues"
