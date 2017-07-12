@@ -104,6 +104,81 @@
         <i class="fa fa-warning"></i>
       </label>
     </div>
+    <div ng-switch-when="groupBy" class="gf-form">
+      <label class="gf-form-label query-keyword width-5">
+        Having
+      </label>
+      <div class="gf-form" ng-repeat="having in ctrl.target.havingSpecs track by $index" ng-switch on="having.type">
+        <label ng-switch-when="equalTo" class="gf-form-label">
+          {{having.type}}:&nbsp;{{having.aggregation}}&nbsp;=&nbsp;{{having.value}}
+          <a ng-click="ctrl.editHaving($index)">
+            <i class="fa fa-pencil"></i>
+          </a>
+          <a ng-click="ctrl.removeHaving($index)">
+            <i class="fa fa-remove"></i>
+          </a>
+        </label>
+        <label ng-switch-when="greaterThan" class="gf-form-label">
+          {{having.type}}:&nbsp;{{having.aggregation}}&nbsp;=&nbsp;{{having.value}}
+          <a ng-click="ctrl.editHaving($index)">
+            <i class="fa fa-pencil"></i>
+          </a>
+          <a ng-click="ctrl.removeHaving($index)">
+            <i class="fa fa-remove"></i>
+          </a>
+        </label>
+        <label ng-switch-when="lessThan" class="gf-form-label">
+          {{having.type}}:&nbsp;{{having.aggregation}}&nbsp;=&nbsp;{{having.value}}
+          <a ng-click="ctrl.editHaving($index)">
+            <i class="fa fa-pencil"></i>
+          </a>
+          <a ng-click="ctrl.removeHaving($index)">
+            <i class="fa fa-remove"></i>
+          </a>
+        </label>
+        <label ng-switch-when="dimSelector" class="gf-form-label">
+          {{having.type}}:&nbsp;{{having.dimension}}&nbsp;=&nbsp;{{having.value}}
+          <a ng-click="ctrl.editHaving($index)">
+            <i class="fa fa-pencil"></i>
+          </a>
+          <a ng-click="ctrl.removeHaving($index)">
+            <i class="fa fa-remove"></i>
+          </a>
+        </label>
+      </div>
+      <div class="gf-form" ng-hide="ctrl.addHavingMode">
+        <label class="gf-form-label query-keyword">
+          <a ng-click="ctrl.addHaving()"><i class="fa fa-plus"></i></a>
+        </label>
+      </div>
+      <div class="gf-form" ng-show="ctrl.addHavingMode">
+        <div class="gf-form-select-wrapper">
+          <select ng-model="ctrl.target.currentHaving.type" class="gf-form-input width-10" ng-options="type for type in ctrl.groupHavingTypes"
+            ng-change="ctrl.targetBlur()">
+          </select>
+        </div>
+      </div>
+      <div class="gf-form" ng-show="ctrl.addHavingMode" ng-switch on="ctrl.target.currentHaving.type">
+        <input type="text" ng-switch-when="equalTo" class="input-small gf-form-input width-10" spellcheck='false' ng-model="ctrl.target.currentHaving.aggregation" placeholder="aggregation" ng-blur="ctrl.targetBlur()">
+        <input type="text" ng-switch-when="equalTo" class="input-small gf-form-input width-10" spellcheck='false' ng-model="ctrl.target.currentHaving.value" placeholder="value" ng-blur="ctrl.targetBlur()">
+
+        <input type="text" ng-switch-when="greaterThan" class="input-small gf-form-input width-10" spellcheck='false' ng-model="ctrl.target.currentHaving.aggregation" placeholder="aggregation" ng-blur="ctrl.targetBlur()">
+        <input type="text" ng-switch-when="greaterThan" class="input-small gf-form-input width-10" spellcheck='false' ng-model="ctrl.target.currentHaving.value" placeholder="value" ng-blur="ctrl.targetBlur()">
+
+        <input type="text" ng-switch-when="lessThan" class="input-small gf-form-input width-10" spellcheck='false' ng-model="ctrl.target.currentHaving.aggregation" placeholder="aggregation" ng-blur="ctrl.targetBlur()">
+        <input type="text" ng-switch-when="lessThan" class="input-small gf-form-input width-10" spellcheck='false' ng-model="ctrl.target.currentHaving.value" placeholder="value" ng-blur="ctrl.targetBlur()">
+
+        <input type="text" ng-switch-when="dimSelector" class="input-small gf-form-input width-10" spellcheck='false' ng-model="ctrl.target.currentHaving.dimension" placeholder="dimension" ng-blur="ctrl.targetBlur()">
+        <input type="text" ng-switch-when="dimSelector" class="input-small gf-form-input width-10" spellcheck='false' ng-model="ctrl.target.currentHaving.value" placeholder="value" ng-blur="ctrl.targetBlur()">
+
+      </div>
+      <div class="gf-form" ng-show="ctrl.addHavingMode">
+        <label class="gf-form-label">
+          <a ng-click="ctrl.addHaving()">add tag</a>
+          <a ng-click="ctrl.clearCurrentHaving()"><i class="fa fa-remove"></i></a>
+        </label>
+      </div>
+    </div>
     <div ng-switch-when="select" class="gf-form">
       <label class="gf-form-label query-keyword width-9">
         Dimensions
