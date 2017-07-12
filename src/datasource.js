@@ -52,6 +52,13 @@ function (angular, _, dateMath, moment) {
       "javascript": _.partialRight(replaceTemplateValues, ['function']),
     };
 
+    var havingTemplateExpanders = {
+      "equalTo": _.partialRight(replaceTemplateValues, ['aggregation', 'value']),
+      "greaterThan": _.partialRight(replaceTemplateValues, ['aggregation', 'value']),
+      "lessThan": _.partialRight(replaceTemplateValues, ['aggregation', 'value']),
+      "dimSelector": _.partialRight(replaceTemplateValues, ['dimension', 'value']),
+    };
+
     this.testDatasource = function() {
       return this._get('/druid/v2/datasources').then(function () {
         return { status: "success", message: "Druid Data source is working", title: "Success" };
@@ -117,6 +124,7 @@ function (angular, _, dateMath, moment) {
       var postAggregators = target.postAggregators;
       var groupBy = _.map(target.groupBy, (e) => { return templateSrv.replace(e) });
       var limitSpec = null;
+      var havingSpecs = target.havingSpecs;
       var metricNames = getMetricNames(aggregators, postAggregators);
       var intervals = getQueryIntervals(from, to);
       var promise = null;
@@ -139,7 +147,7 @@ function (angular, _, dateMath, moment) {
       }
       else if (target.queryType === 'groupBy') {
         limitSpec = getLimitSpec(target.limit, target.orderBy);
-        promise = this._groupByQuery(datasource, intervals, granularity, filters, aggregators, postAggregators, groupBy, limitSpec)
+        promise = this._groupByQuery(datasource, intervals, granularity, filters, aggregators, postAggregators, groupBy, limitSpec, havingSpecs)
           .then(function(response) {
             return convertGroupByData(response.data, groupBy, metricNames);
           });
@@ -241,7 +249,7 @@ function (angular, _, dateMath, moment) {
     };
 
     this._groupByQuery = function (datasource, intervals, granularity, filters, aggregators, postAggregators,
-    groupBy, limitSpec) {
+    groupBy, limitSpec, havingSpecs) {
       var query = {
         "queryType": "groupBy",
         "dataSource": datasource,
@@ -250,11 +258,15 @@ function (angular, _, dateMath, moment) {
         "aggregations": aggregators,
         "postAggregations": postAggregators,
         "intervals": intervals,
-        "limitSpec": limitSpec
+        "limitSpec": limitSpec,
       };
 
       if (filters && filters.length > 0) {
         query.filter = buildFilterTree(filters);
+      }
+
+      if (havingSpecs && havingSpecs.length > 0) {
+        query.having = buildHavingTree(havingSpecs);
       }
 
       return this._druidQuery(query);
@@ -279,6 +291,66 @@ function (angular, _, dateMath, moment) {
           return {"dimension": col, "direction": "DESCENDING"};
         })
       };
+    }
+
+    function buildHavingTree(havingSpecs) {
+      //Do template variable replacement
+      var replacedHavings = havingSpecs.map(function (having) {
+        return havingTemplateExpanders[having.type](having);
+      });
+      if (replacedHavings) {
+
+        // var temp = [];
+        // replacedHavings.forEach(item => {
+        //   var valueKey = '';
+        //   switch (item.type) {
+        //     case "greaterThan":
+        //     case "equalTo":
+        //     case "lessThan":
+
+        //     case "dimSelector":
+        //       valueKey = "value";
+        //       break;
+        //   }
+
+        //   //templateSrv
+
+        //   // var m = item[valueKey].match(/.*:"(\$.*)"\s?(and|or)?/);
+        //   // var result = templateSrv._regex.test(item[valueKey]);
+        //   // if (false === result) {
+        //   //   temp.push(item);
+        //   // }
+
+        //   //var result = item[valueKey].match(templateSrv._regex);
+        //   var variableName = templateSrv.getVariableName(item[valueKey]);
+        //   if (variableName) {
+        //     var variable = templateSrv.getVariable(`$${variableName}`, "custom");
+
+        //     if (null === variable) {
+        //       temp.push(item);
+        //     }
+        //   } else {
+        //     temp.push(item);
+        //   }
+
+        //   //if(item[valueKey])
+        // });
+
+        // replacedHavings = temp;
+
+        if (replacedHavings.length === 0) {
+          return null;
+        }
+
+        if (replacedHavings.length === 1) {
+          return replacedHavings[0];
+        }
+        return  {
+          "type": "and",
+          "havingSpecs": replacedHavings
+        };
+      }
+      return null;
     }
 
     function buildFilterTree(filters) {

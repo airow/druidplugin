@@ -23,6 +23,12 @@ var DruidQueryCtrl = (function (_super) {
             "regex": this.validateRegexFilter.bind(this),
             "javascript": this.validateJavascriptFilter.bind(this)
         };
+        this.groupHavingValidators = {
+            "equalTo": lodash_1.default.partial(this.validateNumericHaving.bind(this), 'equalTo'),
+            "greaterThan": lodash_1.default.partial(this.validateNumericHaving.bind(this), 'greaterThan'),
+            "lessThan": lodash_1.default.partial(this.validateNumericHaving.bind(this), 'lessThan'),
+            "dimSelector": lodash_1.default.partial(this.validateDimensionHaving.bind(this), 'dimSelector'),
+        };
         this.aggregatorValidators = {
             "count": this.validateCountAggregator,
             "longSum": lodash_1.default.partial(this.validateSimpleAggregator.bind(this), 'longSum'),
@@ -41,6 +47,7 @@ var DruidQueryCtrl = (function (_super) {
         this.arithmeticPostAggregatorTypes = { 'hyperUniqueCardinality': null, 'fieldAccess': null };
         this.defaultQueryType = "timeseries";
         this.defaultFilterType = "selector";
+        this.defaultHavingType = "equalTo";
         this.defaultAggregatorType = "count";
         this.defaultPostAggregator = { type: 'arithmetic', 'fn': '+' };
         this.customGranularities = ['minute', 'fifteen_minute', 'thirty_minute', 'hour', 'day', 'all'];
@@ -53,6 +60,7 @@ var DruidQueryCtrl = (function (_super) {
         }
         this.queryTypes = lodash_1.default.keys(this.queryTypeValidators);
         this.filterTypes = lodash_1.default.keys(this.filterValidators);
+        this.groupHavingTypes = lodash_1.default.keys(this.groupHavingValidators);
         this.aggregatorTypes = lodash_1.default.keys(this.aggregatorValidators);
         this.postAggregatorTypes = lodash_1.default.keys(this.postAggregatorValidators);
         this.arithmeticPostAggregator = lodash_1.default.keys(this.arithmeticPostAggregatorFns);
@@ -61,6 +69,9 @@ var DruidQueryCtrl = (function (_super) {
         this.errors = this.validateTarget();
         if (!this.target.currentFilter) {
             this.clearCurrentFilter();
+        }
+        if (!this.target.currentHaving) {
+            this.clearCurrentHaving();
         }
         if (!this.target.currentSelect) {
             this.target.currentSelect = {};
@@ -162,8 +173,40 @@ var DruidQueryCtrl = (function (_super) {
         this.targetBlur();
     };
     DruidQueryCtrl.prototype.clearCurrentFilter = function () {
-        this.target.currentFilter = { type: this.defaultFilterType };
+        this.target.currentFilter = { type: this.defaultHavingType };
         this.addFilterMode = false;
+        this.targetBlur();
+    };
+    DruidQueryCtrl.prototype.addHaving = function () {
+        if (!this.addHavingMode) {
+            //Enabling this mode will display the filter inputs
+            this.addHavingMode = true;
+            return;
+        }
+        if (!this.target.havingSpecs) {
+            this.target.havingSpecs = [];
+        }
+        this.target.errors = this.validateTarget();
+        if (!this.target.errors.currentHaving) {
+            //Add new group having to the list
+            this.target.havingSpecs.push(this.target.currentHaving);
+            this.clearCurrentHaving();
+            this.addHavingMode = false;
+        }
+        this.targetBlur();
+    };
+    DruidQueryCtrl.prototype.editHaving = function (index) {
+        this.addHavingMode = true;
+        var delHaving = this.target.havingSpecs.splice(index, 1);
+        this.target.currentHaving = delHaving[0];
+    };
+    DruidQueryCtrl.prototype.removeHaving = function (index) {
+        this.target.havingSpecs.splice(index, 1);
+        this.targetBlur();
+    };
+    DruidQueryCtrl.prototype.clearCurrentHaving = function () {
+        this.target.currentHaving = { type: this.defaultHavingType };
+        this.addHavingMode = false;
         this.targetBlur();
     };
     DruidQueryCtrl.prototype.addSelectDimensions = function () {
@@ -261,6 +304,9 @@ var DruidQueryCtrl = (function (_super) {
     };
     DruidQueryCtrl.prototype.isValidFilterType = function (type) {
         return lodash_1.default.has(this.filterValidators, type);
+    };
+    DruidQueryCtrl.prototype.isValidHavingType = function (type) {
+        return lodash_1.default.has(this.groupHavingValidators, type);
     };
     DruidQueryCtrl.prototype.isValidAggregatorType = function (type) {
         return lodash_1.default.has(this.aggregatorValidators, type);
@@ -366,6 +412,26 @@ var DruidQueryCtrl = (function (_super) {
         if (!target.currentFilter.pattern) {
             return "Must provide pattern for regex filter.";
         }
+        return null;
+    };
+    DruidQueryCtrl.prototype.validateNumericHaving = function (type, target) {
+        if (!target.currentHaving.aggregation) {
+            return "Must provide an aggregation for " + type + " group having.";
+        }
+        if (!target.currentHaving.value) {
+            return "Must provide a value for " + type + " group having.";
+        }
+        //TODO - check that fieldName is a valid metric (exists and of correct type)
+        return null;
+    };
+    DruidQueryCtrl.prototype.validateDimensionHaving = function (type, target) {
+        if (!target.currentHaving.dimension) {
+            return "Must provide an aggregation for " + type + " group having.";
+        }
+        if (!target.currentHaving.value) {
+            return "Must provide a value for " + type + " group having.";
+        }
+        //TODO - check that fieldName is a valid metric (exists and of correct type)
         return null;
     };
     DruidQueryCtrl.prototype.validateCountAggregator = function (target) {
@@ -502,6 +568,17 @@ var DruidQueryCtrl = (function (_super) {
                 validatorOut = this.filterValidators[this.target.currentFilter.type](this.target);
                 if (validatorOut) {
                     errs.currentFilter = validatorOut;
+                }
+            }
+        }
+        if (this.addHavingMode) {
+            if (!this.isValidHavingType(this.target.currentHaving.type)) {
+                errs.currentHaving = "Invalid filter type: " + this.target.currentHaving.type + ".";
+            }
+            else {
+                validatorOut = this.groupHavingValidators[this.target.currentHaving.type](this.target);
+                if (validatorOut) {
+                    errs.currentHaving = validatorOut;
                 }
             }
         }

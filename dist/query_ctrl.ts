@@ -8,6 +8,7 @@ export class DruidQueryCtrl extends QueryCtrl {
   static templateUrl = 'partials/query.editor.html';
   errors: any;
   addFilterMode: boolean;
+  addHavingMode: boolean;
   addAggregatorMode: boolean;
   addPostAggregatorMode: boolean;
   addDimensionsMode: boolean;
@@ -18,6 +19,7 @@ export class DruidQueryCtrl extends QueryCtrl {
   getDimensions: any;
   queryTypes: any;
   filterTypes: any;
+  groupHavingTypes: any;
   aggregatorTypes: any;
   postAggregatorTypes: any;
   arithmeticPostAggregator: any;
@@ -36,6 +38,12 @@ export class DruidQueryCtrl extends QueryCtrl {
     "selector": this.validateSelectorFilter.bind(this),
     "regex": this.validateRegexFilter.bind(this),
     "javascript": this.validateJavascriptFilter.bind(this)
+  };
+  groupHavingValidators = {
+    "equalTo": _.partial(this.validateNumericHaving.bind(this), 'equalTo'),
+    "greaterThan": _.partial(this.validateNumericHaving.bind(this), 'greaterThan'),
+    "lessThan": _.partial(this.validateNumericHaving.bind(this), 'lessThan'),
+    "dimSelector": _.partial(this.validateDimensionHaving.bind(this), 'dimSelector'),
   };
   aggregatorValidators = {
     "count": this.validateCountAggregator,
@@ -56,6 +64,7 @@ export class DruidQueryCtrl extends QueryCtrl {
   arithmeticPostAggregatorTypes = { 'hyperUniqueCardinality': null, 'fieldAccess': null };
   defaultQueryType = "timeseries";
   defaultFilterType = "selector";
+  defaultHavingType = "equalTo";
   defaultAggregatorType = "count";
   defaultPostAggregator = { type: 'arithmetic', 'fn': '+' };
   customGranularities = ['minute', 'fifteen_minute', 'thirty_minute', 'hour', 'day', 'all'];
@@ -74,6 +83,7 @@ export class DruidQueryCtrl extends QueryCtrl {
 
     this.queryTypes = _.keys(this.queryTypeValidators);
     this.filterTypes = _.keys(this.filterValidators);
+    this.groupHavingTypes = _.keys(this.groupHavingValidators);
     this.aggregatorTypes = _.keys(this.aggregatorValidators);
     this.postAggregatorTypes = _.keys(this.postAggregatorValidators);
     this.arithmeticPostAggregator = _.keys(this.arithmeticPostAggregatorFns);
@@ -83,6 +93,10 @@ export class DruidQueryCtrl extends QueryCtrl {
     this.errors = this.validateTarget();
     if (!this.target.currentFilter) {
       this.clearCurrentFilter();
+    }
+
+    if (!this.target.currentHaving) {
+      this.clearCurrentHaving();
     }
 
     if (!this.target.currentSelect) {
@@ -201,8 +215,47 @@ export class DruidQueryCtrl extends QueryCtrl {
   }
 
   clearCurrentFilter() {
-    this.target.currentFilter = { type: this.defaultFilterType };
+    this.target.currentFilter = { type: this.defaultHavingType };
     this.addFilterMode = false;
+    this.targetBlur();
+  }
+
+  addHaving() {
+    if (!this.addHavingMode) {
+      //Enabling this mode will display the filter inputs
+      this.addHavingMode = true;
+      return;
+    }
+
+    if (!this.target.havingSpecs) {
+      this.target.havingSpecs = [];
+    }
+
+    this.target.errors = this.validateTarget();
+    if (!this.target.errors.currentHaving) {
+      //Add new group having to the list
+      this.target.havingSpecs.push(this.target.currentHaving);
+      this.clearCurrentHaving();
+      this.addHavingMode = false;
+    }
+
+    this.targetBlur();
+  }
+
+  editHaving(index) {
+    this.addHavingMode = true;
+    var delHaving = this.target.havingSpecs.splice(index, 1);
+    this.target.currentHaving = delHaving[0];
+  }
+
+  removeHaving(index) {
+    this.target.havingSpecs.splice(index, 1);
+    this.targetBlur();
+  }
+
+  clearCurrentHaving() {
+    this.target.currentHaving = { type: this.defaultHavingType };
+    this.addHavingMode = false;
     this.targetBlur();
   }
 
@@ -318,6 +371,10 @@ export class DruidQueryCtrl extends QueryCtrl {
 
   isValidFilterType(type) {
     return _.has(this.filterValidators, type);
+  }
+
+  isValidHavingType(type) {
+    return _.has(this.groupHavingValidators, type);
   }
 
   isValidAggregatorType(type) {
@@ -436,6 +493,28 @@ export class DruidQueryCtrl extends QueryCtrl {
     if (!target.currentFilter.pattern) {
       return "Must provide pattern for regex filter.";
     }
+    return null;
+  }
+
+  validateNumericHaving(type, target) {
+    if (!target.currentHaving.aggregation) {
+      return "Must provide an aggregation for " + type + " group having.";
+    }
+    if (!target.currentHaving.value) {
+      return "Must provide a value for " + type + " group having.";
+    }
+    //TODO - check that fieldName is a valid metric (exists and of correct type)
+    return null;
+  }
+
+  validateDimensionHaving(type, target) {
+    if (!target.currentHaving.dimension) {
+      return "Must provide an aggregation for " + type + " group having.";
+    }
+    if (!target.currentHaving.value) {
+      return "Must provide a value for " + type + " group having.";
+    }
+    //TODO - check that fieldName is a valid metric (exists and of correct type)
     return null;
   }
 
@@ -572,6 +651,17 @@ export class DruidQueryCtrl extends QueryCtrl {
         validatorOut = this.filterValidators[this.target.currentFilter.type](this.target);
         if (validatorOut) {
           errs.currentFilter = validatorOut;
+        }
+      }
+    }
+
+    if (this.addHavingMode) {
+      if (!this.isValidHavingType(this.target.currentHaving.type)) {
+        errs.currentHaving = "Invalid filter type: " + this.target.currentHaving.type + ".";
+      } else {
+        validatorOut = this.groupHavingValidators[this.target.currentHaving.type](this.target);
+        if (validatorOut) {
+          errs.currentHaving = validatorOut;
         }
       }
     }

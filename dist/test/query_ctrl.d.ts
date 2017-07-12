@@ -4,6 +4,7 @@ export declare class DruidQueryCtrl extends QueryCtrl {
     static templateUrl: string;
     errors: any;
     addFilterMode: boolean;
+    addHavingMode: boolean;
     addAggregatorMode: boolean;
     addPostAggregatorMode: boolean;
     addDimensionsMode: boolean;
@@ -14,6 +15,7 @@ export declare class DruidQueryCtrl extends QueryCtrl {
     getDimensions: any;
     queryTypes: any;
     filterTypes: any;
+    groupHavingTypes: any;
     aggregatorTypes: any;
     postAggregatorTypes: any;
     arithmeticPostAggregator: any;
@@ -31,6 +33,12 @@ export declare class DruidQueryCtrl extends QueryCtrl {
         "selector": any;
         "regex": any;
         "javascript": any;
+    };
+    groupHavingValidators: {
+        "equalTo": any;
+        "greaterThan": any;
+        "lessThan": any;
+        "dimSelector": any;
     };
     aggregatorValidators: {
         "count": (target: any) => string;
@@ -57,6 +65,7 @@ export declare class DruidQueryCtrl extends QueryCtrl {
     };
     defaultQueryType: string;
     defaultFilterType: string;
+    defaultHavingType: string;
     defaultAggregatorType: string;
     defaultPostAggregator: {
         type: string;
@@ -75,6 +84,10 @@ export declare class DruidQueryCtrl extends QueryCtrl {
     editFilter(index: any): void;
     removeFilter(index: any): void;
     clearCurrentFilter(): void;
+    addHaving(): void;
+    editHaving(index: any): void;
+    removeHaving(index: any): void;
+    clearCurrentHaving(): void;
     addSelectDimensions(): void;
     removeSelectDimension(index: any): void;
     clearCurrentSelectDimension(): void;
@@ -88,6 +101,7 @@ export declare class DruidQueryCtrl extends QueryCtrl {
     removePostAggregator(index: any): void;
     clearCurrentPostAggregator(): void;
     isValidFilterType(type: any): any;
+    isValidHavingType(type: any): any;
     isValidAggregatorType(type: any): any;
     isValidPostAggregatorType(type: any): any;
     isValidQueryType(type: any): any;
@@ -101,6 +115,8 @@ export declare class DruidQueryCtrl extends QueryCtrl {
     validateSelectorFilter(target: any): string;
     validateJavascriptFilter(target: any): string;
     validateRegexFilter(target: any): string;
+    validateNumericHaving(type: any, target: any): string;
+    validateDimensionHaving(type: any, target: any): string;
     validateCountAggregator(target: any): string;
     validateSimpleAggregator(type: any, target: any): string;
     validateApproxHistogramFoldAggregator(target: any): string;
