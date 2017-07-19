@@ -451,11 +451,11 @@ function (angular, _, dateMath, moment) {
       });
     }
 
-    function getGroupName(groupBy, metric) {
+    function getGroupName(groupBy, metric, groupSeparator) {
       return groupBy.map(function (dim) {
         return metric.event[dim];
       })
-      .join("-");
+      .join(groupSeparator);
     }
 
     function convertTopNData(md, dimension, metric) {
@@ -562,15 +562,18 @@ function (angular, _, dateMath, moment) {
     }
 
     function convertGroupByData(md, groupBy, metrics) {
+
+      var groupBySeparator = { group: "[-]", metric: "[:]" };
+
       var mergedData = md.map(function (item) {
         /*
           The first map() transforms the list Druid events into a list of objects
           with keys of the form "<groupName>:<metric>" and values
           of the form [metricValue, unixTime]
         */
-        var groupName = getGroupName(groupBy, item);
+        var groupName = getGroupName(groupBy, item, groupBySeparator.group);
         var keys = metrics.map(function (metric) {
-          return groupName + ":" + metric;
+          return groupName + groupBySeparator.metric + metric;
         });
         var vals = metrics.map(function (metric) {
           return [
