@@ -73,9 +73,9 @@ export class DruidQueryCtrl extends QueryCtrl {
   defaultSelectMetric = "";
   defaultLimit = 5;
 
-
+  alertSrv: any;
   /** @ngInject **/
-  constructor($scope, $injector, $q) {
+  constructor($scope, $injector, $q, alertSrv) {
     super($scope, $injector);
     if (!this.target.queryType) {
       this.target.queryType = this.defaultQueryType;
@@ -89,6 +89,9 @@ export class DruidQueryCtrl extends QueryCtrl {
     this.arithmeticPostAggregator = _.keys(this.arithmeticPostAggregatorFns);
     this.arithmeticPostAggregatorType = _.keys(this.arithmeticPostAggregatorTypes);
     this.customGranularity = this.customGranularities;
+    this.alertSrv = alertSrv;
+
+    this.panelCtrl.events.on('data-error', this.onDataError.bind(this), $scope);
 
     this.errors = this.validateTarget();
     if (!this.target.currentFilter) {
@@ -121,6 +124,10 @@ export class DruidQueryCtrl extends QueryCtrl {
       this.target.limit = this.defaultLimit;
     }
 
+    if (!this.target.timeRange) {
+      this.target.timeRange = { enable: false };
+    }
+
     // needs to be defined here as it is called from typeahead
     this.listDataSources = (query, callback) => {
       this.datasource.getDataSources()
@@ -150,6 +157,14 @@ export class DruidQueryCtrl extends QueryCtrl {
     //this.$on('typeahead-updated', function() {
     //  $timeout(this.targetBlur);
     //});
+  }
+
+  onDataError(err) {
+    switch (err.code) {
+      case 'limitTimeRange':
+        this.alertSrv.set("Druid", err.message, "warning", 2000);
+        break;
+    }
   }
 
   cachedAndCoalesced(ioFn, $scope, cacheName) {

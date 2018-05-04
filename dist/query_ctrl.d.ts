@@ -76,8 +76,10 @@ export declare class DruidQueryCtrl extends QueryCtrl {
     defaultSelectDimension: string;
     defaultSelectMetric: string;
     defaultLimit: number;
+    alertSrv: any;
     /** @ngInject **/
-    constructor($scope: any, $injector: any, $q: any);
+    constructor($scope: any, $injector: any, $q: any, alertSrv: any);
+    onDataError(err: any): void;
     cachedAndCoalesced(ioFn: any, $scope: any, cacheName: any): any;
     targetBlur(): void;
     addFilter(): void;

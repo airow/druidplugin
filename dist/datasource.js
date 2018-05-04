@@ -16,10 +16,11 @@
 define([
   'angular',
   'lodash',
+  'app/core/utils/rangeutil',
   'app/core/utils/datemath',
   'moment',
 ],
-function (angular, _, dateMath, moment) {
+function (angular, _, rangeUtil, dateMath, moment) {
   'use strict';
 
   /** @ngInject */
@@ -89,13 +90,38 @@ function (angular, _, dateMath, moment) {
     // Called once per panel (graph)
     this.query = function(options) {
       var dataSource = this;
+
       var from = dateToMoment(options.range.from, false);
       var to = dateToMoment(options.range.to, true);
 
-      console.log("Do query");
-      console.log(options);
+      // console.log("Do query");
+      // console.log(options);
 
       var promises = options.targets.map(function (target) {
+
+        var override = { from, to };
+
+        if (target.timeRange && target.timeRange.enable) {
+          if (target.timeRange.timeFrom) {
+            var timeFromInterpolated = target.timeRange.timeFrom;
+            var timeFromInfo = rangeUtil.describeTextRange(timeFromInterpolated);
+            if (true !== timeFromInfo.invalid) {
+              override.from = dateMath.parse(timeFromInfo.from);
+              override.to = dateMath.parse(timeFromInfo.to);
+            }
+          }
+
+          if (target.timeRange.timeShift) {
+            var timeShiftInterpolated = target.timeRange.timeShift;
+            var timeShiftInfo = rangeUtil.describeTextRange(timeShiftInterpolated);
+            if (true !== timeShiftInfo.invalid) {
+              var timeShift = '-' + timeShiftInterpolated;
+              override.from = dateMath.parseDateMath(timeShift, override.from, false);
+              override.to = dateMath.parseDateMath(timeShift, override.to, true);
+            }
+          }
+        }
+
         if (_.isEmpty(target.druidDS) || (_.isEmpty(target.aggregators) && target.queryType !== "select")) {
           console.log("target.druidDS: " + target.druidDS + ", target.aggregators: " + target.aggregators);
           var d = $q.defer();
@@ -108,8 +134,8 @@ function (angular, _, dateMath, moment) {
         var granularity = target.shouldOverrideGranularity? target.customGranularity : computeGranularity(from, to, maxDataPoints);
         //Round up to start of an interval
         //Width of bar chars in Grafana is determined by size of the smallest interval
-        var roundedFrom = granularity === "all" ? from : roundUpStartTime(from, granularity);
-        return dataSource._doQuery(roundedFrom, to, granularity, target);
+        var roundedFrom = granularity === "all" ? override.from : roundUpStartTime(override.from, granularity);
+        return dataSource._doQuery(roundedFrom, override.to, granularity, target);
       });
 
       return $q.all(promises).then(function(results) {
@@ -127,6 +153,19 @@ function (angular, _, dateMath, moment) {
       var havingSpecs = target.havingSpecs;
       var metricNames = getMetricNames(aggregators, postAggregators);
       var intervals = getQueryIntervals(from, to);
+
+      var limitTimeRange = target.limitTimeRange;
+      if (_.isNil(limitTimeRange)) {
+        limitTimeRange = _.size(filters) === 0 ? 7 : 30;
+      }
+
+      var diffDay = _.ceil(to.diff(from, 'day', true));
+      if (diffDay > limitTimeRange) {
+        var limitTimeRangeDefer = $q.defer();
+        limitTimeRangeDefer.reject({ code: 'limitTimeRange', message: `Druid查询时间跨度超过限制${limitTimeRange}天` });
+        return limitTimeRangeDefer.promise;
+      }
+
       var promise = null;
 
       var selectMetrics = target.selectMetrics;
@@ -278,8 +317,8 @@ function (angular, _, dateMath, moment) {
         url: this.url + '/druid/v2/',
         data: query
       };
-      console.log("Make http request");
-      console.log(options);
+      // console.log("Make http request");
+      // console.log(options);
       return backendSrv.datasourceRequest(options);
     };
 
