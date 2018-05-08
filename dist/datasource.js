@@ -155,14 +155,28 @@ function (angular, _, rangeUtil, dateMath, moment) {
       var intervals = getQueryIntervals(from, to);
 
       var limitTimeRange = target.limitTimeRange;
+      var limitTimeRangeUnit = target.limitTimeRangeUnit;
+      var maxLimitTimeRange = limitTimeRange;
+      if (_.isNil(limitTimeRangeUnit)) {
+        limitTimeRangeUnit = "天";
+      }
       if (_.isNil(limitTimeRange)) {
         limitTimeRange = _.size(filters) === 0 ? 7 : 30;
+        limitTimeRangeUnit = "天";
       }
-
-      var diffDay = _.ceil(to.diff(from, 'day', true));
-      if (diffDay > limitTimeRange) {
+      switch (limitTimeRangeUnit) {
+        case "小时":
+          maxLimitTimeRange = limitTimeRange;
+          break;
+        default:
+        case "天":
+          maxLimitTimeRange = limitTimeRange * 24;
+          break;
+      }
+      var diffDay = _.ceil(to.diff(from, 'hours', true));
+      if (diffDay > maxLimitTimeRange) {
         var limitTimeRangeDefer = $q.defer();
-        limitTimeRangeDefer.reject({ code: 'limitTimeRange', message: `Druid查询时间跨度超过限制${limitTimeRange}天` });
+        limitTimeRangeDefer.reject({ code: 'limitTimeRange', message: `Druid查询时间跨度超过限制${limitTimeRange}${limitTimeRangeUnit}` });
         return limitTimeRangeDefer.promise;
       }
 

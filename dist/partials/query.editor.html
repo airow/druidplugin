@@ -540,9 +540,11 @@
       </label>
     </div>
     <div class="gf-form">
-      <span class="gf-form-label width-6">Limit<tip>默认值：无条件7天，有条件30天。自定义单位为天</tip></span>
+      <span class="gf-form-label width-6">Limit<tip>默认值：无条件7天，有条件30天。</tip></span>
       <input type="number" class="gf-form-input max-width-8" placeholder="30" ng-model="ctrl.target.limitTimeRange"
         ng-change="ctrl.refresh()" ng-model-onblur></input>
+      <select class="gf-form-input" ng-model="ctrl.target.limitTimeRangeUnit" ng-options="f for f in ['天','小时']">
+      </select>
     </div>
     <gf-form-switch class="gf-form"
 			label="Override" label-class=""

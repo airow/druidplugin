@@ -9,7 +9,7 @@ var sdk_1 = require('./sdk/sdk');
 var DruidQueryCtrl = (function (_super) {
     __extends(DruidQueryCtrl, _super);
     /** @ngInject **/
-    function DruidQueryCtrl($scope, $injector, $q) {
+    function DruidQueryCtrl($scope, $injector, $q, alertSrv) {
         var _this = this;
         _super.call(this, $scope, $injector);
         this.queryTypeValidators = {
@@ -66,6 +66,8 @@ var DruidQueryCtrl = (function (_super) {
         this.arithmeticPostAggregator = lodash_1.default.keys(this.arithmeticPostAggregatorFns);
         this.arithmeticPostAggregatorType = lodash_1.default.keys(this.arithmeticPostAggregatorTypes);
         this.customGranularity = this.customGranularities;
+        this.alertSrv = alertSrv;
+        this.panelCtrl.events.on('data-error', this.onDataError.bind(this), $scope);
         this.errors = this.validateTarget();
         if (!this.target.currentFilter) {
             this.clearCurrentFilter();
@@ -89,6 +91,9 @@ var DruidQueryCtrl = (function (_super) {
         }
         if (!this.target.limit) {
             this.target.limit = this.defaultLimit;
+        }
+        if (!this.target.timeRange) {
+            this.target.timeRange = { enable: false };
         }
         // needs to be defined here as it is called from typeahead
         this.listDataSources = function (query, callback) {
@@ -116,6 +121,13 @@ var DruidQueryCtrl = (function (_super) {
         //  $timeout(this.targetBlur);
         //});
     }
+    DruidQueryCtrl.prototype.onDataError = function (err) {
+        switch (err.code) {
+            case 'limitTimeRange':
+                this.alertSrv.set("Druid", err.message, "warning", 2000);
+                break;
+        }
+    };
     DruidQueryCtrl.prototype.cachedAndCoalesced = function (ioFn, $scope, cacheName) {
         var promiseName = cacheName + "Promise";
         if (!$scope[cacheName]) {
