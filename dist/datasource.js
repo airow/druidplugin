@@ -419,7 +419,7 @@ function (angular, _, rangeUtil, dateMath, moment) {
         return finalFilter;
       });
       if (replacedFilters) {
-
+        _.remove(replacedFilters, { type: "regex", pattern: "^*" });
         var temp = [];
         replacedFilters.forEach(item => {
           var valueKey = '';
